@@ -39,7 +39,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 // ACCÈS RÉSERVÉ : SUPER ADMIN & CONTRÔLE INTERNE
 // ==========================================
 Route::middleware(['auth', 'verified', 'role:Super Admin|Controle Interne'])->group(function () {
-    // Gestion des utilisateurs (souvent restreinte en interne via le contrôleur)
+    // Gestion des utilisateurs 
     Route::resource('users', UserController::class);
 });
 
@@ -51,13 +51,12 @@ Route::middleware(['auth', 'verified', 'role:Super Admin'])->group(function () {
     Route::get('/logs', [AuditLogController::class, 'index'])->name('logs.index');
 });
 
-// Accès aux transferts : Consultation pour tous les rôles, création uniquement pour Super Admin et OPS
+// Accès aux transferts : Consultation, Export, Création et Affichage détaillé
 Route::middleware(['auth', 'verified'])->group(function () {
     
-    // Consultation Index et Show : Accessible à TOUS les rôles (Super Admin, CI, OPS, CCB)
+    // Consultation Index et Export : Accessibles à TOUS les rôles (Super Admin, CI, OPS, CCB)
     Route::middleware(['role:Super Admin|Controle Interne|OPS|CCB'])->group(function () {
         Route::get('/transfers', [TransferController::class, 'index'])->name('transfers.index');
-        Route::get('/transfers/{transfer}', [TransferController::class, 'show'])->name('transfers.show');
         Route::get('/transfers/export', [TransferController::class, 'export'])->name('transfers.export');
     });
 
@@ -65,6 +64,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::middleware(['role:Super Admin|OPS'])->group(function () {
         Route::get('/transfers/create', [TransferController::class, 'create'])->name('transfers.create');
         Route::post('/transfers', [TransferController::class, 'store'])->name('transfers.store');
+    });
+
+    // Route dynamique : Placée en dernier pour ne pas intercepter /create ou /export
+    Route::middleware(['role:Super Admin|Controle Interne|OPS|CCB'])->group(function () {
+        Route::get('/transfers/{transfer}', [TransferController::class, 'show'])->name('transfers.show');
     });
 
 });

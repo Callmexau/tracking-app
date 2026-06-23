@@ -43,9 +43,13 @@
                     </tbody>
                 </table>
             </div>
-            <div class="p-4 border-top">
-                {{ $logs->links() }}
-            </div>
+            
+            {{-- Liens de pagination --}}
+            @if ($logs->hasPages())
+                <div class="p-4 border-top">
+                    {{ $logs->links() }}
+                </div>
+            @endif
         </div>
     </div>
 </div>

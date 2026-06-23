@@ -100,11 +100,11 @@
                     <div class="col-md-6">
                         <label for="password" class="form-label fw-semibold text-dark mb-1" style="font-size: 13px;">Mot de passe temporaire</label>
                         <input type="password" 
-                               name="password" 
-                               id="password" 
-                               class="form-control custom-input @error('password') is-invalid @enderror" 
-                               placeholder="••••••••" 
-                               required>
+                                name="password" 
+                                id="password" 
+                                class="form-control custom-input @error('password') is-invalid @enderror" 
+                                placeholder="Entrez un mot de passe temporaire" 
+                                required>
                         <div class="form-text text-muted" style="font-size: 11px;">Longueur minimale : 8 caractères.</div>
                         @error('password')
                             <div class="invalid-feedback">{{ $message }}</div>
@@ -114,11 +114,11 @@
                     <div class="col-md-6">
                         <label for="password_confirmation" class="form-label fw-semibold text-dark mb-1" style="font-size: 13px;">Confirmer le mot de passe</label>
                         <input type="password" 
-                               name="password_confirmation" 
-                               id="password_confirmation" 
-                               class="form-control custom-input" 
-                               placeholder="••••••••" 
-                               required>
+                                name="password_confirmation" 
+                                id="password_confirmation" 
+                                class="form-control custom-input" 
+                                placeholder="Confirmez le mot de passe" 
+                                required>
                     </div>
                 </div>
 

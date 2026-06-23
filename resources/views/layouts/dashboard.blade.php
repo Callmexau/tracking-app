@@ -330,14 +330,14 @@
                 </li>
                 @endrole
 
-                {{-- Réservé exclusivement au Super Admin --}}
-                @role('Super Admin')
+                {{-- Transferts : Visibles uniquement par Super Admin, OPS et CCB (Contrôle Interne exclu) --}}
+                @hasanyrole(['Super Admin', 'OPS', 'CCB'])
                 <li class="sidebar-item {{ request()->routeIs('transfers.*') ? 'active' : '' }}">
                     <a href="{{ route('transfers.index') }}" class="sidebar-link">
                         <i class="bi bi-arrow-left-right"></i> <span>Transferts</span>
                     </a>
                 </li>
-                @endrole
+                @endhasanyrole
 
                 {{-- Visible par tous les profils authentifiés --}}
                 <li class="sidebar-item {{ request()->routeIs('profile.edit') ? 'active' : '' }}">

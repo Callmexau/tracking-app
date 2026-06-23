@@ -5,13 +5,14 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 use App\Models\Transfer; 
+use App\Models\AuditLog; 
 use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\TransfersExport;
 
 class TransferController extends Controller
 {
-    // Affiche la liste des transferts avec prise en charge de la recherche
+    // Affiche la liste paginée des transferts avec prise en charge de la recherche
     public function index(Request $request)
     {
         $query = Transfer::query();
@@ -26,8 +27,8 @@ class TransferController extends Controller
             });
         }
 
-        // Tri par ordre décroissant (les plus récents en premier)
-        $transfers = $query->latest()->get();
+        // Tri par ordre décroissant et pagination de 10 éléments par page
+        $transfers = $query->latest()->paginate(10);
 
         return view('transfers.index', compact('transfers'));
     }
@@ -42,27 +43,27 @@ class TransferController extends Controller
     public function store(Request $request)
     {
         $validatedData = $request->validate([
-            'date_depot'                => 'required|date',
-            'segment_clientele'         => 'required|string|in:ECG,CCB,CIB',
-            'ref_n98'                   => 'nullable|string|max:50',
-            'donneur_ordre'             => 'required|string|max:255',
-            'beneficiaire'              => 'required|string|max:255',
-            'reference_transaction'     => 'nullable|string|max:100',
-            'devise'                    => 'required|string|in:XAF,XOF,EUR,USD,CAD,GBP',
-            'montant_ordre'             => 'required|numeric|min:0',
+            'date_depot'            => 'required|date',
+            'segment_clientele'     => 'required|string|in:ECG,CCB,CIB',
+            'ref_n98'               => 'nullable|string|max:50|unique:transfers,ref_n98', // <-- Validation d'unicité ajoutée
+            'donneur_ordre'         => 'required|string|max:255',
+            'beneficiaire'          => 'required|string|max:255',
+            'reference_transaction' => 'nullable|string|max:100',
+            'devise'                => 'required|string|in:XAF,XOF,EUR,USD,CAD,GBP',
+            'montant_ordre'         => 'required|numeric|min:0',
             'montant_devise_prefinance' => 'nullable|numeric|min:0',
-            'situation_dossier'         => 'nullable|string|in:Préfinancement,Allocation,Instance,Marge',
-            'numero_allocation'         => 'nullable|required_if:situation_dossier,Allocation|string|max:50',
-            'date_envoi_beac'           => 'nullable|date',
-            'date_decision'             => 'nullable|date',
-            'decision_beac'             => 'nullable|string|in:Favorable,Rejet,Suspens BEAC',
-            'date_reception_mt999'      => 'nullable|date',
+            'situation_dossier'     => 'nullable|string|in:Préfinancement,Allocation,Instance,Marge',
+            'numero_allocation'     => 'nullable|required_if:situation_dossier,Allocation|string|max:50',
+            'date_envoi_beac'       => 'nullable|date',
+            'date_decision'         => 'nullable|date',
+            'decision_beac'         => 'nullable|string|in:Favorable,Rejet,Suspens BEAC',
+            'date_reception_mt999'  => 'nullable|date',
             'date_envoi_couverture_xaf' => 'nullable|date',
-            'date_reception_devise'     => 'nullable|date',
-            'conditions_reunies_le'     => 'nullable|date',
-            'date_traitement'           => 'nullable|date',
-            'statut'                    => 'required|string|in:Non traité,Traité,Rejet',
-            'commentaire'               => 'nullable|string',
+            'date_reception_devise' => 'nullable|date',
+            'conditions_reunies_le' => 'nullable|date',
+            'date_traitement'       => 'nullable|date',
+            'statut'                => 'required|string|in:Non traité,Traité,Rejet',
+            'commentaire'           => 'nullable|string',
         ]);
 
         // Ajout de l'ID de l'utilisateur authentifié si disponible
@@ -84,12 +85,19 @@ class TransferController extends Controller
         // Sauvegarde dans la base de données via le modèle Transfer
         $transfer = Transfer::create($validatedData);
 
-        // Journalisation (Log) de l'action
+        // Journalisation (Log) technique
         Log::info("Nouveau transfert enregistré avec succès.", [
             'transfer_id'   => $transfer->id,
             'donneur_ordre' => $transfer->donneur_ordre,
             'montant'       => $transfer->montant_ordre,
             'enregistre_par' => auth()->id() ? 'Utilisateur ID: ' . auth()->id() : 'Système'
+        ]);
+
+        // Enregistrement dans les logs d'audit affichables dans l'application
+        AuditLog::create([
+            'user_id' => auth()->id(), // Enregistre l'OPS ou le Super Admin connecté
+            'action' => 'CRÉATION',
+            'description' => 'Enregistrement d\'un nouveau transfert (Réf N98 : ' . ($transfer->ref_n98 ?? 'N/A') . ') au profit de ' . $transfer->beneficiaire . ' (Montant : ' . number_format($transfer->montant_ordre, 2, ',', ' ') . ' ' . $transfer->devise . ')',
         ]);
 
         return redirect()->route('transfers.index')->with('success', 'Transfert enregistré avec succès.');
@@ -110,6 +118,13 @@ class TransferController extends Controller
         
         // Nom du fichier avec horodatage et extension .xlsx
         $fileName = 'export_transferts_' . date('Y_m_d_His') . '.xlsx';
+
+        // Enregistrement de l'action d'export dans les logs système de l'application
+        AuditLog::create([
+            'user_id' => auth()->id(),
+            'action' => 'EXPORT',
+            'description' => 'Exportation des données de transferts au format Excel (Période du ' . ($start ?? 'début') . ' au ' . ($end ?? 'fin') . ')',
+        ]);
 
         // Utilisation de la classe de la façade Excel pointant vers la classe d'export dédiée
         return Excel::download(new TransfersExport($start, $end), $fileName);

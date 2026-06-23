@@ -7,12 +7,14 @@ use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Concerns\WithStyles;
+use Maatwebsite\Excel\Concerns\WithColumnFormatting; // <-- Ajout de l'interface de formatage
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use PhpOffice\PhpSpreadsheet\Style\NumberFormat; // <-- Ajout du format TEXT
 
-class TransfersExport implements FromCollection, WithHeadings, WithMapping, WithStyles
+class TransfersExport implements FromCollection, WithHeadings, WithMapping, WithStyles, WithColumnFormatting
 {
     protected $startDate;
     protected $endDate;
@@ -78,7 +80,7 @@ class TransfersExport implements FromCollection, WithHeadings, WithMapping, With
         return [
             $formatDate($transfer->date_depot),
             $transfer->segment_clientele,
-            $transfer->ref_n98,
+            (string) $transfer->ref_n98, // <-- Forcé en chaîne de caractères pour éviter la conversion en nombre par Excel
             $transfer->donneur_ordre,
             $transfer->beneficiaire,
             $transfer->reference_transaction,
@@ -97,6 +99,16 @@ class TransfersExport implements FromCollection, WithHeadings, WithMapping, With
             $transfer->statut,
             $transfer->commentaire,
             $transfer->delai_traitement,
+        ];
+    }
+
+    /**
+     * Force le format texte sur la colonne Réf N98 pour conserver les zéros initiaux (0001, etc.)
+     */
+    public function columnFormats(): array
+    {
+        return [
+            'C' => NumberFormat::FORMAT_TEXT,
         ];
     }
 
@@ -135,13 +147,12 @@ class TransfersExport implements FromCollection, WithHeadings, WithMapping, With
                 ],
                 'alignment' => [
                     'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
-                    'wrapText' => true, // <-- ACTIVE LE RETOUR À LA LIGNE DANS LES CELLULES
+                    'wrapText' => true, // <-- Active le retour à la ligne dans les cellules
                 ],
             ]);
         }
 
-        // 4. DONNER DE L'ESPACE : Forcer des largeurs de colonnes confortables (au lieu de l'autoSize qui compresse)
-        // Vous pouvez ajuster ces valeurs en millimètres ou caractères si besoin
+        // 4. DONNER DE L'ESPACE : Forcer des largeurs de colonnes confortables
         $columnWidths = [
             'A' => 15, // Date de dépôt
             'B' => 18, // Segment Clientèle
@@ -152,7 +163,7 @@ class TransfersExport implements FromCollection, WithHeadings, WithMapping, With
             'G' => 12, // Devise
             'H' => 18, // Montant Ordre
             'I' => 18, // Montant Devise Préf.
-            'J' => 25, // Situation Dossier (Allocation - 0034 tiendra parfaitement sur 2 lignes)
+            'J' => 25, // Situation Dossier 
             'K' => 15, // Envoi BEAC
             'L' => 15, // Date Décision
             'M' => 18, // Décision BEAC

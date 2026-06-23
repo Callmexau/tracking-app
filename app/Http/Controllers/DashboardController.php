@@ -35,14 +35,14 @@ class DashboardController extends Controller
             return view('users.index', $data);
         }
 
-        // Redirection pour les utilisateurs avec le rôle Ops
+        // Redirection directe vers les transferts pour le rôle OPS
         if ($user->hasRole('OPS')) {
-            return view('dashboards.ops');
+            return redirect()->route('transfers.index');
         }
 
-        // Redirection pour les utilisateurs avec le rôle CCB
+        // Redirection directe vers les transferts pour le rôle CCB
         if ($user->hasRole('CCB')) {
-            return view('dashboards.ccb');
+            return redirect()->route('transfers.index');
         }
 
         abort(403);

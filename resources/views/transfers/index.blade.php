@@ -9,7 +9,7 @@
         <p class="text-muted small mb-0">Visualisez et gérez l'ensemble des transferts enregistrés sur la plateforme.</p>
     </div>
     {{-- Bouton menant à la page de création --}}
-    @role(['Super Admin', 'Contrôle Interne'])
+    @role(['Super Admin', 'OPS'])
         <a href="{{ route('transfers.create') }}" class="btn btn-primary px-4">
             <i class="bi bi-plus-lg me-1"></i> Nouveau transfert
         </a>

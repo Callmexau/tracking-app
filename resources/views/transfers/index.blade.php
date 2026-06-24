@@ -123,9 +123,18 @@
                                 </span>
                             </td>
                             <td class="pe-4 text-end">
-                                <a href="{{ route('transfers.show', $transfer->id) }}" class="btn btn-sm btn-outline-secondary" title="Détails">
-                                    <i class="bi bi-eye"></i>
-                                </a>
+                                <div class="d-flex justify-content-end gap-1">
+                                    <a href="{{ route('transfers.show', $transfer->id) }}" class="btn btn-sm btn-outline-secondary" title="Détails">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                    
+                                    {{-- Bouton Modifier visible uniquement par Super Admin et OPS --}}
+                                    @role(['Super Admin', 'OPS'])
+                                        <a href="{{ route('transfers.edit', $transfer->id) }}" class="btn btn-sm btn-outline-primary" title="Modifier">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                    @endrole
+                                </div>
                             </td>
                         </tr>
                     @empty

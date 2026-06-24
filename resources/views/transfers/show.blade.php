@@ -12,8 +12,8 @@
         <a href="{{ route('transfers.index') }}" class="btn btn-outline-secondary px-3 me-2">
             <i class="bi bi-arrow-left me-1"></i> Retour
         </a>
-        @role(['Super Admin', 'Contrôle Interne'])
-            <a href="#" class="btn btn-primary px-3">
+        @role(['Super Admin', 'OPS', 'Contrôle Interne'])
+            <a href="{{ route('transfers.edit', $transfer->id) }}" class="btn btn-primary px-3">
                 <i class="bi bi-pencil-square me-1"></i> Modifier
             </a>
         @endrole

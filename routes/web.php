@@ -51,7 +51,7 @@ Route::middleware(['auth', 'verified', 'role:Super Admin'])->group(function () {
     Route::get('/logs', [AuditLogController::class, 'index'])->name('logs.index');
 });
 
-// Accès aux transferts : Consultation, Export, Création et Affichage détaillé
+// Accès aux transferts : Consultation, Export, Création, Modification et Affichage détaillé
 Route::middleware(['auth', 'verified'])->group(function () {
     
     // Consultation Index et Export : Accessibles à TOUS les rôles (Super Admin, CI, OPS, CCB)
@@ -60,10 +60,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/transfers/export', [TransferController::class, 'export'])->name('transfers.export');
     });
 
-    // Création / Enregistrement : Réservé uniquement au Super Admin et aux OPS
+    // Création / Modification / Enregistrement : Réservé uniquement au Super Admin et aux OPS
     Route::middleware(['role:Super Admin|OPS'])->group(function () {
         Route::get('/transfers/create', [TransferController::class, 'create'])->name('transfers.create');
         Route::post('/transfers', [TransferController::class, 'store'])->name('transfers.store');
+        
+        // Routes ajoutées pour le bouton Modifier
+        Route::get('/transfers/{transfer}/edit', [TransferController::class, 'edit'])->name('transfers.edit');
+        Route::put('/transfers/{transfer}', [TransferController::class, 'update'])->name('transfers.update');
     });
 
     // Route dynamique : Placée en dernier pour ne pas intercepter /create ou /export

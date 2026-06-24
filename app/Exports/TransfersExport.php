@@ -7,12 +7,12 @@ use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Concerns\WithStyles;
-use Maatwebsite\Excel\Concerns\WithColumnFormatting; // <-- Ajout de l'interface de formatage
+use Maatwebsite\Excel\Concerns\WithColumnFormatting; 
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
-use PhpOffice\PhpSpreadsheet\Style\NumberFormat; // <-- Ajout du format TEXT
+use PhpOffice\PhpSpreadsheet\Style\NumberFormat; 
 
 class TransfersExport implements FromCollection, WithHeadings, WithMapping, WithStyles, WithColumnFormatting
 {
@@ -43,9 +43,7 @@ class TransfersExport implements FromCollection, WithHeadings, WithMapping, With
         return $query->get();
     }
 
-    /**
-     * En-têtes des colonnes dans le fichier Excel exporté
-     */
+    // Définition des en-têtes pour le fichier Excel exporté
     public function headings(): array
     {
         return [
@@ -102,9 +100,7 @@ class TransfersExport implements FromCollection, WithHeadings, WithMapping, With
         ];
     }
 
-    /**
-     * Force le format texte sur la colonne Réf N98 pour conserver les zéros initiaux (0001, etc.)
-     */
+    // Définition des styles pour le fichier Excel exporté
     public function columnFormats(): array
     {
         return [

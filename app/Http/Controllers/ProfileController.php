@@ -13,9 +13,7 @@ use Illuminate\View\View;
 
 class ProfileController extends Controller
 {
-    /**
-     * Display the user's profile form.
-     */
+    // Afficher le formulaire d'édition du profil pour l'utilisateur connecté
     public function edit(Request $request): View
     {
         return view('profile.edit', [
@@ -23,9 +21,7 @@ class ProfileController extends Controller
         ]);
     }
 
-    /**
-     * Update the user's profile information.
-     */
+    // Mettre à jour les informations du profil de l'utilisateur après validation
     public function update(ProfileUpdateRequest $request): RedirectResponse
     {
         $request->user()->fill($request->validated());
@@ -39,9 +35,7 @@ class ProfileController extends Controller
         return Redirect::route('profile.edit')->with('status', 'profile-updated');
     }
 
-    /**
-     * Update the user's password.
-     */
+    // Mettre à jour le mot de passe de l'utilisateur après validation du mot de passe actuel
     public function updatePassword(Request $request): RedirectResponse
     {
         $validated = $request->validateWithBag('updatePassword', [
@@ -57,9 +51,7 @@ class ProfileController extends Controller
         return Redirect::route('profile.edit')->with('status', 'password-updated');
     }
 
-    /**
-     * Delete the user's account.
-     */
+    // Supprimer le compte de l'utilisateur connecté après validation du mot de passe
     public function destroy(Request $request): RedirectResponse
     {
         $request->validateWithBag('userDeletion', [

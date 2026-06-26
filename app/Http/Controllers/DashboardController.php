@@ -49,40 +49,59 @@ class DashboardController extends Controller
     }
 
     private function getCommonDashboardData(bool $includeChart = true): array
-    {
-        $chartData = [];
-        
-        if ($includeChart && class_exists(Transfer::class)) {
-            $transfersPerDate = Transfer::select(
-                DB::raw('DATE(date_depot) as date'),
-                DB::raw('count(*) as total')
-            )
-            ->where('date_depot', '>=', now()->subDays(7))
-            ->groupBy('date')
-            ->orderBy('date', 'ASC')
-            ->pluck('total', 'date');
+{
+    $chartData = [
+        'labels' => [],
+        'data' => []
+    ];
+    
+    if ($includeChart && class_exists(Transfer::class)) {
+        // 1. On récupère les données de la DB (sur le début de la journée startOfDay pour ne rien rater)
+        $transfersPerDate = Transfer::select(
+            DB::raw('DATE(date_depot) as date'),
+            DB::raw('count(*) as total')
+        )
+        ->where('date_depot', '>=', now()->subDays(6)->startOfDay()) // 6 jours + aujourd'hui = 7 jours
+        ->groupBy('date')
+        ->pluck('total', 'date')
+        ->toArray(); // On convertit en tableau PHP standard
 
-            $chartData = [
-                'labels' => $transfersPerDate->keys()->toArray(),
-                'data' => $transfersPerDate->values()->toArray()
-            ];
+        // 2. On génère TOUS les 7 derniers jours pour être sûr de ne pas avoir de trou
+        $labels = [];
+        $data = [];
+
+        for ($i = 6; $i >= 0; $i--) {
+            // Format Y-m-d pour correspondre à la clé de la DB (ex: 2026-06-26)
+            $dateString = now()->subDays($i)->format('Y-m-d');
+            
+            // Format d'affichage sur le graphique (ex: 26/06)
+            $labels[] = now()->subDays($i)->format('d/m'); 
+            
+            // Si la date existe en DB on prend le total, sinon on met 0
+            $data[] = $transfersPerDate[$dateString] ?? 0;
         }
 
-        return [
-            'totalUsers'           => User::count(),
-            'totalControleInterne' => User::role('Controle Interne')->count(),
-            'totalOps'             => User::role('OPS')->count(),
-            'totalCCB'             => User::role('CCB')->count(),
-            'activeUsers'          => User::where('is_active', true)->count(),
-            
-            'recentUsers' => User::latest()->take(5)->get(),
-
-            'totalTransfers'     => class_exists(Transfer::class) ? Transfer::count() : 0,
-            'pendingTransfers'   => class_exists(Transfer::class) ? Transfer::where('statut', 'Non traité')->count() : 0,
-            'processedTransfers' => class_exists(Transfer::class) ? Transfer::where('statut', 'Traité')->count() : 0,
-            'rejectedTransfers'  => class_exists(Transfer::class) ? Transfer::where('statut', 'Rejet')->count() : 0,
-            
-            'chartData' => $chartData,
+        $chartData = [
+            'labels' => $labels,
+            'data' => $data
         ];
     }
+
+    return [
+        'totalUsers'           => User::count(),
+        'totalControleInterne' => User::role('Controle Interne')->count(),
+        'totalOps'             => User::role('OPS')->count(),
+        'totalCCB'             => User::role('CCB')->count(),
+        'activeUsers'          => User::where('is_active', true)->count(),
+        
+        'recentUsers' => User::latest()->take(5)->get(),
+
+        'totalTransfers'     => class_exists(Transfer::class) ? Transfer::count() : 0,
+        'pendingTransfers'   => class_exists(Transfer::class) ? Transfer::where('statut', 'Non traité')->count() : 0,
+        'processedTransfers' => class_exists(Transfer::class) ? Transfer::where('statut', 'Traité')->count() : 0,
+        'rejectedTransfers'  => class_exists(Transfer::class) ? Transfer::where('statut', 'Rejet')->count() : 0,
+        
+        'chartData' => $chartData,
+    ];
+}
 }

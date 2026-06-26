@@ -195,7 +195,7 @@
         </div>
     </div>
 
-    {{-- Audit / Activité --}}
+    {{-- Audit / Activité Corrigé --}}
     <div class="col-lg-5">
         <div class="card h-100 shadow-sm border-0">
             <div class="card-header bg-transparent border-bottom py-3">
@@ -205,41 +205,41 @@
             </div>
             <div class="card-body">
                 <div class="timeline">
-                    <div class="d-flex mb-3 position-relative">
-                        <div class="me-3 text-center">
-                            <span class="badge bg-soft-success rounded-circle p-2"><i class="bi bi-plus-circle text-success"></i></span>
-                            <div class="vr h-100 my-1 bg-light"></div>
+                    <div class="timeline-item">
+                        <div class="timeline-icon bg-soft-success">
+                            <i class="bi bi-plus-circle text-success"></i>
                         </div>
-                        <div>
+                        <div class="timeline-content">
                             <p class="mb-0 fw-semibold text-dark small">Création d'utilisateurs</p>
                             <span class="text-muted fs-7">Système mis à jour</span>
                         </div>
                     </div>
-                    <div class="d-flex mb-3 position-relative">
-                        <div class="me-3 text-center">
-                            <span class="badge bg-soft-primary rounded-circle p-2"><i class="bi bi-shield-lock text-primary"></i></span>
-                            <div class="vr h-100 my-1 bg-light"></div>
+                    
+                    <div class="timeline-item">
+                        <div class="timeline-icon bg-soft-primary">
+                            <i class="bi bi-shield-lock text-primary"></i>
                         </div>
-                        <div>
+                        <div class="timeline-content">
                             <p class="mb-0 fw-semibold text-dark small">Gestion des rôles et accès</p>
                             <span class="text-muted fs-7">Sécurité configurée</span>
                         </div>
                     </div>
-                    <div class="d-flex mb-3 position-relative">
-                        <div class="me-3 text-center">
-                            <span class="badge bg-soft-info rounded-circle p-2"><i class="bi bi-send text-info"></i></span>
-                            <div class="vr h-100 my-1 bg-light"></div>
+                    
+                    <div class="timeline-item">
+                        <div class="timeline-icon bg-soft-info">
+                            <i class="bi bi-send text-info"></i>
                         </div>
-                        <div>
+                        <div class="timeline-content">
                             <p class="mb-0 fw-semibold text-dark small">Création des transferts internationaux</p>
                             <span class="text-muted fs-7">En attente de traitement</span>
                         </div>
                     </div>
-                    <div class="d-flex">
-                        <div class="me-3 text-center">
-                            <span class="badge bg-soft-warning rounded-circle p-2"><i class="bi bi-pencil-square text-warning"></i></span>
+                    
+                    <div class="timeline-item">
+                        <div class="timeline-icon bg-soft-warning">
+                            <i class="bi bi-pencil-square text-warning"></i>
                         </div>
-                        <div>
+                        <div class="timeline-content">
                             <p class="mb-0 fw-semibold text-dark small">Modifications des dossiers</p>
                             <span class="text-muted fs-7">Vérifications d'audit</span>
                         </div>
@@ -289,6 +289,46 @@
     .bg-soft-success { background-color: rgba(25, 135, 84, 0.12); color: #198754; }
     .bg-soft-warning { background-color: rgba(255, 193, 7, 0.12); color: #ffc107; }
     .bg-soft-info { background-color: rgba(13, 202, 240, 0.12); color: #0dcaf0; }
+
+    /* NOUVEAU STYLE TIMELINE ADAPTÉ */
+    .timeline {
+        position: relative;
+        padding-left: 1rem;
+    }
+    .timeline::before {
+        content: '';
+        position: absolute;
+        left: 27px;
+        top: 15px;
+        bottom: 15px;
+        width: 2px;
+        background-color: #e9ecef;
+    }
+    .timeline-item {
+        position: relative;
+        display: flex;
+        align-items: flex-start;
+        margin-bottom: 1.5rem;
+    }
+    .timeline-item:last-child {
+        margin-bottom: 0;
+    }
+    .timeline-icon {
+        position: relative;
+        z-index: 2;
+        width: 36px;
+        height: 36px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        flex-shrink: 0;
+        background-color: #fff;
+    }
+    .timeline-content {
+        margin-left: 1rem;
+        padding-top: 4px;
+    }
 </style>
 @endpush
 
@@ -298,7 +338,6 @@
     document.addEventListener("DOMContentLoaded", function() {
         const ctx = document.getElementById('transfersChart').getContext('2d');
         
-        // Récupération des données passées depuis le DashboardController
         const chartLabels = @json($chartData['labels'] ?? []);
         const chartValues = @json($chartData['data'] ?? []);
 
@@ -322,7 +361,6 @@
                 scales: {
                     y: {
                         beginAtZero: true,
-                        // Force les incréments de l'axe Y à être des nombres entiers (pas de 0.5, 0.1, etc.)
                         ticks: {
                             stepSize: 1,
                             precision: 0
@@ -338,7 +376,6 @@
                     }
                 },
                 plugins: {
-                    // S'assure que le graphique ne tente pas d'afficher des décimales bizarres dans les infobulles
                     tooltip: {
                         callbacks: {
                             label: function(context) {

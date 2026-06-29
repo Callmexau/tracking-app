@@ -44,7 +44,7 @@
         <div class="card h-100 shadow-sm border-0 transition-hover">
             <div class="card-body d-flex align-items-center">
                 <div class="flex-grow-1">
-                    <div class="text-muted small fw-semibold text-uppercase">Opérateurs (Ops)</div>
+                    <div class="text-muted small fw-semibold text-uppercase">Opération (Ops)</div>
                     <div class="fs-3 fw-bold text-success mt-1">{{ $totalOps ?? 0 }}</div>
                 </div>
                 <div class="bg-light-success rounded-3 p-3 ms-3">

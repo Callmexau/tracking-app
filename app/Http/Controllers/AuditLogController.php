@@ -27,7 +27,7 @@ class AuditLogController extends Controller implements HasMiddleware
         }
 
         // Récupération des 20 derniers logs par page, triés par les plus récents
-        $logs = AuditLog::with('user')->latest()->paginate(20);
+        $logs = AuditLog::with('user')->latest()->paginate(25);
 
         return view('logs.index', compact('logs'));
     }

@@ -36,7 +36,7 @@ class UserController extends Controller implements HasMiddleware
             abort(403);
         }
 
-        $users = $query->paginate(10);
+        $users = $query->paginate(15);
 
         return view('users.index', compact('users'));
     }

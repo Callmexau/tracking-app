@@ -28,7 +28,7 @@ class TransferController extends Controller
         }
 
         // Tri par ordre décroissant et pagination de 10 éléments par page
-        $transfers = $query->latest()->paginate(10);
+        $transfers = $query->latest()->paginate(20);
 
         return view('transfers.index', compact('transfers'));
     }

@@ -13,7 +13,7 @@
         :root {
             --brand-primary: #00548f;
             --brand-secondary: #00a3ad;
-            --sidebar-bg: #0b1320; 
+            --sidebar-bg: #0b1320;
             --sidebar-active: rgba(0, 163, 173, 0.15);
             --body-bg: #f4f7f6;
             --sidebar-width: 260px;
@@ -339,6 +339,21 @@
                 </li>
                 @endhasanyrole
 
+
+                {{-- Exportations : Visibles uniquement par Super Admin, OPS et CCB (Contrôle Interne exclu) --}}
+                @hasanyrole(['Super Admin', 'OPS', 'CCB'])
+                <li class="sidebar-item {{ request()->routeIs('exports.*') ? 'active' : '' }}">
+                    <a href="{{ route('exports.index') }}" class="sidebar-link">
+                        <i class="bi bi-box-arrow-up-right"></i> <span>Exportations</span>
+                    </a>
+                </li>
+                <li class="sidebar-item {{ request()->routeIs('imports.*') ? 'active' : '' }}">
+                    <a href="{{ route('imports.index') }}" class="sidebar-link">
+                        <i class="bi bi-box-arrow-down-left"></i> <span>Importations</span>
+                    </a>
+                </li>
+                @endhasanyrole
+
                 {{-- Visible par tous les profils authentifiés --}}
                 <li class="sidebar-item {{ request()->routeIs('profile.edit') ? 'active' : '' }}">
                     <a href="{{ route('profile.edit') }}" class="sidebar-link">
@@ -360,12 +375,12 @@
     </nav>
 
     <main id="content">
-        
+
         <div class="top-profile d-flex justify-content-between align-items-center">
             <div class="text-muted small fw-medium">
                 <i class="bi bi-calendar3 me-2"></i> {{ now()->translatedFormat('l d F Y') }}
             </div>
-            
+
             <div class="d-flex align-items-center">
                 <div class="text-end me-3 d-none d-sm-block">
                     <div class="fw-semibold text-dark mb-0" style="font-size: 14px;">{{ auth()->user()->first_name ?? 'Claude' }} {{ auth()->user()->last_name ?? 'Yoka' }}</div>

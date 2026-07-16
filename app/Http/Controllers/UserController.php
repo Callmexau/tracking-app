@@ -30,7 +30,7 @@ class UserController extends Controller implements HasMiddleware
         // Si c'est le Contrôle Interne, il ne liste que les Ops et CCB
         if ($currentUser->hasRole('Controle Interne')) {
             $query->role(['OPS', 'CCB']);
-        } 
+        }
         // Si ce n'est pas un Super Admin, on bloque
         elseif (!$currentUser->hasRole('Super Admin')) {
             abort(403);
@@ -49,11 +49,11 @@ class UserController extends Controller implements HasMiddleware
         // 1. Le Super Admin peut attribuer TOUS les rôles
         if ($currentUser->hasRole('Super Admin')) {
             $roles = Role::all();
-        } 
+        }
         // 2. Le Contrôle Interne ne voit et ne crée QUE des Ops et des CCB
         elseif ($currentUser->hasRole('Controle Interne')) {
             $roles = Role::whereIn('name', ['OPS', 'CCB'])->get();
-        } 
+        }
         else {
             abort(403, 'Vous n\'êtes pas autorisé à créer un utilisateur.');
         }
@@ -88,12 +88,13 @@ class UserController extends Controller implements HasMiddleware
             'email'      => $request->email,
             'password'   => Hash::make($request->password),
             'is_active'  => true,
+            'must_change_password' => true,
         ]);
 
         $user->assignRole($request->role);
 
         AuditLog::log(
-            'user.created', 
+            'user.created',
             "L'agent {$currentUser->first_name} {$currentUser->last_name} a créé le compte de {$user->first_name} {$user->last_name} avec le rôle de {$request->role}."
         );
 
@@ -109,7 +110,7 @@ class UserController extends Controller implements HasMiddleware
 
         if ($currentUser->hasRole('Controle Interne') && !$user->hasAnyRole(['OPS', 'CCB'])) {
             abort(403, 'Vous n\'êtes pas autorisé à modifier cet utilisateur.');
-        } 
+        }
         elseif (!$currentUser->hasRole('Super Admin') && !$currentUser->hasRole('Controle Interne')) {
             abort(403);
         }
@@ -137,7 +138,7 @@ class UserController extends Controller implements HasMiddleware
         if ($currentUser->hasRole('Super Admin')) {
             $allowedRoles = ['Super Admin', 'Controle Interne', 'OPS', 'CCB'];
         } elseif ($currentUser->hasRole('Controle Interne')) {
-            $allowedRoles = ['OPS', 'CCB']; 
+            $allowedRoles = ['OPS', 'CCB'];
             // SÉCURITÉ SUPPLÉMENTAIRE : S'assurer que le rôle soumis dans le formulaire n'est pas interdit
             if (in_array($request->role, ['Super Admin', 'Controle Interne'])) {
                 abort(403, 'Action non autorisée sur ce rôle.');
@@ -170,7 +171,7 @@ class UserController extends Controller implements HasMiddleware
         $user->syncRoles($request->role);
 
         AuditLog::log(
-            'user.updated', 
+            'user.updated',
             "L'agent {$currentUser->first_name} {$currentUser->last_name} a mis à jour les informations du compte de {$user->first_name} {$user->last_name}."
         );
 
@@ -193,7 +194,7 @@ class UserController extends Controller implements HasMiddleware
         $user->delete();
 
         AuditLog::log(
-            'user.deleted', 
+            'user.deleted',
             "L'agent {$currentUser->first_name} {$currentUser->last_name} a supprimé l'utilisateur {$user->first_name} {$user->last_name}."
         );
 

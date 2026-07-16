@@ -4,14 +4,14 @@
 
 @section('content')
 <div class="container-fluid p-0 animate__animated animate__fadeIn">
-    
+
     <div class="mb-4">
         <h1 class="h3 text-dark fw-bold mb-1">Mon Profil et Paramètres</h1>
         <p class="text-muted small mb-0">Gérez vos informations personnelles et mettez à jour votre mot de passe en toute sécurité.</p>
     </div>
 
     <div class="row g-4">
-        
+
         <div class="col-lg-8">
             <div class="card border-0 shadow-sm mb-4">
                 <div class="card-header bg-white py-3 px-4 border-0">
@@ -21,6 +21,13 @@
                     @if (session('status') === 'profile-updated')
                         <div class="alert alert-success alert-dismissible fade show" role="alert" style="font-size: 13px; border-radius: 8px;">
                             <i class="bi bi-check-circle me-2"></i> Informations mises à jour avec succès.
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    @endif
+
+                    @if (session('warning'))
+                        <div class="alert alert-warning alert-dismissible fade show" role="alert" style="font-size: 13px; border-radius: 8px;">
+                            <i class="bi bi-exclamation-triangle me-2"></i> {{ session('warning') }}
                             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                         </div>
                     @endif
@@ -122,9 +129,9 @@
                 </div>
                 <h5 class="h6 fw-bold text-dark mb-1">{{ $user->first_name }} {{ $user->last_name }}</h5>
                 <p class="text-muted small mb-3">{{ $user->email }}</p>
-                
+
                 <hr class="opacity-25 w-75 mx-auto">
-                
+
                 <div class="mt-2">
                     <span class="badge bg-primary bg-opacity-10 text-primary fw-medium px-3 py-2" style="font-size: 12px; border-radius: 20px;">
                         Rôle : {{ $user->getRoleNames()->first() ?? 'Aucun rôle' }}
@@ -137,7 +144,7 @@
                 </div>
             </div>
         </div>
-        
+
     </div>
 </div>
 @endsection

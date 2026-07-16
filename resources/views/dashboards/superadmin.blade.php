@@ -214,7 +214,7 @@
                             <span class="text-muted fs-7">Système mis à jour</span>
                         </div>
                     </div>
-                    
+
                     <div class="timeline-item">
                         <div class="timeline-icon bg-soft-primary">
                             <i class="bi bi-shield-lock text-primary"></i>
@@ -224,7 +224,7 @@
                             <span class="text-muted fs-7">Sécurité configurée</span>
                         </div>
                     </div>
-                    
+
                     <div class="timeline-item">
                         <div class="timeline-icon bg-soft-info">
                             <i class="bi bi-send text-info"></i>
@@ -234,7 +234,7 @@
                             <span class="text-muted fs-7">En attente de traitement</span>
                         </div>
                     </div>
-                    
+
                     <div class="timeline-item">
                         <div class="timeline-icon bg-soft-warning">
                             <i class="bi bi-pencil-square text-warning"></i>
@@ -254,13 +254,15 @@
 <div class="card shadow-sm border-0 mb-4">
     <div class="card-header bg-transparent border-bottom py-3 d-flex align-items-center justify-content-between">
         <h5 class="mb-0 fw-bold text-dark fs-6">
-            Évolution Temporelle des Transferts
+            Évolution Temporelle des Transferts et Exportations
         </h5>
-        <select class="form-select form-select-sm border-0 bg-light w-auto">
-            <option>7 derniers jours</option>
-            <option>30 derniers jours</option>
-            <option>Cette année</option>
-        </select>
+        <form method="GET" class="m-0">
+            <select name="period" class="form-select form-select-sm border-0 bg-light w-auto" onchange="this.form.submit()">
+                <option value="7d" {{ ($chartPeriod ?? '7d') === '7d' ? 'selected' : '' }}>7 derniers jours</option>
+                <option value="30d" {{ ($chartPeriod ?? '') === '30d' ? 'selected' : '' }}>30 derniers jours</option>
+                <option value="year" {{ ($chartPeriod ?? '') === 'year' ? 'selected' : '' }}>Cette année</option>
+            </select>
+        </form>
     </div>
     <div class="card-body">
         <div style="position: relative; height: 300px; width: 100%;">
@@ -276,12 +278,12 @@
     .fs-7 { font-size: 0.8rem; }
     .tracking-wider { letter-spacing: 0.05em; }
     .transition-hover:hover { transform: translateY(-3px); transition: all 0.25s ease; }
-    
+
     .bg-light-primary { background-color: rgba(13, 110, 253, 0.1); }
     .bg-light-success { background-color: rgba(25, 135, 84, 0.1); }
     .bg-light-info { background-color: rgba(13, 202, 240, 0.1); }
     .bg-light-indigo { background-color: rgba(102, 16, 242, 0.1); }
-    
+
     .text-indigo-purple { color: #6610f2; }
     .text-indigo { color: #6610f2; }
 
@@ -337,9 +339,11 @@
 <script>
     document.addEventListener("DOMContentLoaded", function() {
         const ctx = document.getElementById('transfersChart').getContext('2d');
-        
+
         const chartLabels = @json($chartData['labels'] ?? []);
         const chartValues = @json($chartData['data'] ?? []);
+        const chartExportValues = @json($chartData['exportData'] ?? []);
+        const chartImportValues = @json($chartData['importData'] ?? []);
 
         new Chart(ctx, {
             type: 'line',
@@ -349,7 +353,23 @@
                     label: 'Transferts enregistrés',
                     data: chartValues,
                     borderColor: '#0d6efd',
-                    backgroundColor: 'rgba(13, 110, 253, 0.05)',
+                    backgroundColor: 'rgba(13, 110, 253, 0.08)',
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.4
+                }, {
+                    label: 'Exportations enregistrées',
+                    data: chartExportValues,
+                    borderColor: '#198754',
+                    backgroundColor: 'rgba(25, 135, 84, 0.08)',
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.4
+                }, {
+                    label: 'Importations enregistrées',
+                    data: chartImportValues,
+                    borderColor: '#6610f2',
+                    backgroundColor: 'rgba(102, 16, 242, 0.08)',
                     borderWidth: 3,
                     fill: true,
                     tension: 0.4
@@ -379,7 +399,7 @@
                     tooltip: {
                         callbacks: {
                             label: function(context) {
-                                return ` Transferts : ${context.raw}`;
+                                return ` ${context.dataset.label} : ${context.raw}`;
                             }
                         }
                     }

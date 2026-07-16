@@ -77,7 +77,8 @@
                     {{-- Référence N98 --}}
                     <div class="mb-3">
                         <label for="ref_n98" class="form-label fw-semibold small">
-                            Réf. N98
+                            Réf. N98 <span class="text-danger">*</span>
+                        </label>
                         </label>
 
                         <input

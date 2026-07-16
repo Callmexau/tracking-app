@@ -4,8 +4,9 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Carbon\Carbon;
-use App\Models\Transfer; 
-use App\Models\AuditLog; 
+use App\Models\Transfer;
+use App\Models\AuditLog;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\TransfersExport;
@@ -32,7 +33,7 @@ class TransferController extends Controller
 
         return view('transfers.index', compact('transfers'));
     }
-    
+
     // Affiche le formulaire de création d'un nouveau transfert
     public function create()
     {
@@ -45,8 +46,8 @@ class TransferController extends Controller
         $validatedData = $this->validateTransfer($request);
 
         // Ajout de l'ID de l'utilisateur authentifié si disponible
-        if (auth()->check()) {
-            $validatedData['created_by'] = auth()->id();
+        if (Auth::check()) {
+            $validatedData['created_by'] = Auth::id();
         }
 
         // Calcul automatique du délai si la date de traitement et la date de dépôt sont remplies
@@ -60,12 +61,12 @@ class TransferController extends Controller
             'transfer_id'   => $transfer->id,
             'donneur_ordre' => $transfer->donneur_ordre,
             'montant'       => $transfer->montant_ordre,
-            'enregistre_par' => auth()->id() ? 'Utilisateur ID: ' . auth()->id() : 'Système'
+            'enregistre_par' => Auth::id() ? 'Utilisateur ID: ' . Auth::id() : 'Système'
         ]);
 
         // Enregistrement dans les logs d'audit affichables dans l'application
         AuditLog::create([
-            'user_id' => auth()->id(), // Enregistre l'OPS ou le Super Admin connecté
+            'user_id' => Auth::id(), // Enregistre l'OPS ou le Super Admin connecté
             'action' => 'CRÉATION',
             'description' => 'Enregistrement d\'un nouveau transfert (Réf N98 : ' . ($transfer->ref_n98 ?? 'N/A') . ') au profit de ' . $transfer->beneficiaire . ' (Montant : ' . number_format($transfer->montant_ordre, 2, ',', ' ') . ' ' . $transfer->devise . ')',
         ]);
@@ -98,7 +99,7 @@ class TransferController extends Controller
         $validatedData = $request->validate([
             'date_depot'                => 'required|date',
             'segment_clientele'         => 'required|string|in:ECG,CCB,CIB',
-            'ref_n98'                   => 'nullable|string|max:50|unique:transfers,ref_n98,' . $transfer->id,
+            'ref_n98'                   => 'required|string|max:50|unique:transfers,ref_n98,' . $transfer->id,
             'donneur_ordre'             => 'required|string|max:255',
             'beneficiaire'              => 'required|string|max:255',
             'reference_transaction'     => 'nullable|string|max:100',
@@ -128,12 +129,12 @@ class TransferController extends Controller
         // Journalisation (Log) technique
         Log::info("Transfert mis à jour avec succès.", [
             'transfer_id'   => $transfer->id,
-            'modifie_par' => auth()->id() ? 'Utilisateur ID: ' . auth()->id() : 'Système'
+            'modifie_par' => Auth::id() ? 'Utilisateur ID: ' . Auth::id() : 'Système'
         ]);
 
         // Enregistrement dans les logs d'audit
         AuditLog::create([
-            'user_id' => auth()->id(),
+            'user_id' => Auth::id(),
             'action' => 'MODIFICATION',
             'description' => 'Mise à jour du transfert (Réf N98 : ' . ($transfer->ref_n98 ?? 'N/A') . ') au profit de ' . $transfer->beneficiaire,
         ]);
@@ -145,13 +146,13 @@ class TransferController extends Controller
     {
         $start = $request->input('start_date');
         $end = $request->input('end_date');
-        
+
         // Nom du fichier avec horodatage et extension .xlsx
         $fileName = 'export_transferts_' . date('Y_m_d_His') . '.xlsx';
 
         // Enregistrement de l'action d'export dans les logs système
         AuditLog::create([
-            'user_id' => auth()->id(),
+            'user_id' => Auth::id(),
             'action' => 'EXPORT',
             'description' => 'Exportation des données de transferts au format Excel (Période du ' . ($start ?? 'début') . ' au ' . ($end ?? 'fin') . ')',
         ]);
@@ -166,7 +167,7 @@ class TransferController extends Controller
         return $request->validate([
             'date_depot'                => 'required|date',
             'segment_clientele'         => 'required|string|in:ECG,CCB,CIB',
-            'ref_n98'                   => 'nullable|string|max:50|unique:transfers,ref_n98',
+            'ref_n98'                   => 'required|string|max:50|unique:transfers,ref_n98',
             'donneur_ordre'             => 'required|string|max:255',
             'beneficiaire'              => 'required|string|max:255',
             'reference_transaction'     => 'nullable|string|max:100',
@@ -194,7 +195,7 @@ class TransferController extends Controller
         if (!empty($data['date_traitement']) && !empty($data['date_depot'])) {
             $debut = Carbon::parse($data['date_depot']);
             $fin = Carbon::parse($data['date_traitement']);
-            
+
             $diff = $debut->diffInDays($fin);
             if ($diff >= 0) {
                 $data['delai_traitement'] = $diff . ' jour(s)';

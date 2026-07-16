@@ -3,21 +3,25 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Models\Import;
 use App\Models\Transfer;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         $user = auth()->user();
+        $period = $request->query('period', '7d');
 
         // Super Admin Dashboard (Accès complet avec graphiques, logs et gestion de profils)
         if ($user->hasRole('Super Admin')) {
-            $data = array_merge($this->getCommonDashboardData(true), [
+            $data = array_merge($this->getCommonDashboardData(true, $period), [
                 'showChart'         => true,
                 'canManageProfiles' => true,
                 'canViewLogs'       => true,
+                'chartPeriod'       => $period,
             ]);
             return view('dashboards.superadmin', $data);
         }
@@ -31,7 +35,7 @@ class DashboardController extends Controller
                 // On injecte les utilisateurs filtrés (OPS et CCB) comme attendu par users.index
                 'users'             => User::role(['OPS', 'CCB'])->latest()->paginate(10),
             ]);
-            
+
             return view('users.index', $data);
         }
 
@@ -48,42 +52,65 @@ class DashboardController extends Controller
         abort(403);
     }
 
-    private function getCommonDashboardData(bool $includeChart = true): array
+    private function getCommonDashboardData(bool $includeChart = true, string $period = '7d'): array
 {
     $chartData = [
         'labels' => [],
-        'data' => []
+        'data' => [],
+        'exportData' => [],
     ];
-    
+
     if ($includeChart && class_exists(Transfer::class)) {
-        // 1. On récupère les données de la DB (sur le début de la journée startOfDay pour ne rien rater)
+        $days = match ($period) {
+            '30d' => 29,
+            'year' => now()->dayOfYear - 1,
+            default => 6,
+        };
+
+        $startDate = now()->subDays($days)->startOfDay();
+
         $transfersPerDate = Transfer::select(
             DB::raw('DATE(date_depot) as date'),
             DB::raw('count(*) as total')
         )
-        ->where('date_depot', '>=', now()->subDays(6)->startOfDay()) // 6 jours + aujourd'hui = 7 jours
+        ->where('date_depot', '>=', $startDate)
         ->groupBy('date')
         ->pluck('total', 'date')
-        ->toArray(); // On convertit en tableau PHP standard
+        ->toArray();
 
-        // 2. On génère TOUS les 7 derniers jours pour être sûr de ne pas avoir de trou
+        $exportsPerDate = DB::table('exports')
+            ->select(DB::raw('DATE(date_domiciliation) as date'), DB::raw('count(*) as total'))
+            ->where('date_domiciliation', '>=', $startDate)
+            ->groupBy('date')
+            ->pluck('total', 'date')
+            ->toArray();
+
+        $importsPerDate = DB::table('imports')
+            ->select(DB::raw('DATE(date_domiciliation) as date'), DB::raw('count(*) as total'))
+            ->where('date_domiciliation', '>=', $startDate)
+            ->groupBy('date')
+            ->pluck('total', 'date')
+            ->toArray();
+
         $labels = [];
         $data = [];
+        $exportData = [];
+        $importData = [];
 
-        for ($i = 6; $i >= 0; $i--) {
-            // Format Y-m-d pour correspondre à la clé de la DB (ex: 2026-06-26)
-            $dateString = now()->subDays($i)->format('Y-m-d');
-            
-            // Format d'affichage sur le graphique (ex: 26/06)
-            $labels[] = now()->subDays($i)->format('d/m'); 
-            
-            // Si la date existe en DB on prend le total, sinon on met 0
+        for ($i = $days; $i >= 0; $i--) {
+            $date = now()->subDays($i);
+            $dateString = $date->format('Y-m-d');
+            $labels[] = $date->format('d/m');
             $data[] = $transfersPerDate[$dateString] ?? 0;
+            $exportData[] = $exportsPerDate[$dateString] ?? 0;
+            $importData[] = $importsPerDate[$dateString] ?? 0;
         }
 
         $chartData = [
             'labels' => $labels,
-            'data' => $data
+            'data' => $data,
+            'exportData' => $exportData,
+            'importData' => $importData,
         ];
     }
 
@@ -93,14 +120,14 @@ class DashboardController extends Controller
         'totalOps'             => User::role('OPS')->count(),
         'totalCCB'             => User::role('CCB')->count(),
         'activeUsers'          => User::where('is_active', true)->count(),
-        
+
         'recentUsers' => User::latest()->take(5)->get(),
 
         'totalTransfers'     => class_exists(Transfer::class) ? Transfer::count() : 0,
         'pendingTransfers'   => class_exists(Transfer::class) ? Transfer::where('statut', 'Non traité')->count() : 0,
         'processedTransfers' => class_exists(Transfer::class) ? Transfer::where('statut', 'Traité')->count() : 0,
         'rejectedTransfers'  => class_exists(Transfer::class) ? Transfer::where('statut', 'Rejet')->count() : 0,
-        
+
         'chartData' => $chartData,
     ];
 }

@@ -1,27 +1,35 @@
 <?php
 
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\AuditLogController;
 use App\Http\Controllers\TransferController;
+use App\Http\Controllers\ExportController;
+use App\Http\Controllers\ImportController;
 
-// Route page d'accueil-connexion
+// ==========================================
+// PAGE D'ACCUEIL
+// ==========================================
 Route::get('/', function () {
-    if (auth()->check()) {
+    if (Auth::user()) {
         return redirect()->route('dashboard');
     }
+
     return redirect()->route('login');
 });
 
-// Routes protégées de base (Communes à tous les connectés : Profil)
-Route::middleware(['auth', 'verified'])->group(function () {
+// ==========================================
+// ROUTES COMMUNES (UTILISATEURS CONNECTÉS)
+// ==========================================
+Route::middleware(['auth', 'verified', 'force_password_change'])->group(function () {
 
     Route::get('/dashboard', [DashboardController::class, 'index'])
         ->name('dashboard');
 
-    // Routes du profil (Breeze par défaut)
+    // Profil
     Route::get('/profile', [ProfileController::class, 'edit'])
         ->name('profile.edit');
 
@@ -36,46 +44,124 @@ Route::middleware(['auth', 'verified'])->group(function () {
 });
 
 // ==========================================
-// ACCÈS RÉSERVÉ : SUPER ADMIN & CONTRÔLE INTERNE
+// UTILISATEURS (SUPER ADMIN + CONTRÔLE INTERNE)
 // ==========================================
-Route::middleware(['auth', 'verified', 'role:Super Admin|Controle Interne'])->group(function () {
-    // Gestion des utilisateurs 
+Route::middleware(['auth', 'verified', 'force_password_change', 'role:Super Admin|Controle Interne'])->group(function () {
+
     Route::resource('users', UserController::class);
+
 });
 
 // ==========================================
-// ACCÈS RÉSERVÉ : SUPER ADMIN UNIQUEMENT
+// LOGS D'AUDIT (SUPER ADMIN)
 // ==========================================
-Route::middleware(['auth', 'verified', 'role:Super Admin'])->group(function () {
-    // Gestion des logs d'audit
-    Route::get('/logs', [AuditLogController::class, 'index'])->name('logs.index');
+Route::middleware(['auth', 'verified', 'force_password_change', 'role:Super Admin'])->group(function () {
+
+    Route::get('/logs', [AuditLogController::class, 'index'])
+        ->name('logs.index');
+
 });
 
-// Accès aux transferts : Consultation, Export, Création, Modification et Affichage détaillé
-Route::middleware(['auth', 'verified'])->group(function () {
-    
-    // Consultation Index et Export : Accessibles à TOUS les rôles (Super Admin, CI, OPS, CCB)
-    Route::middleware(['role:Super Admin|Controle Interne|OPS|CCB'])->group(function () {
-        Route::get('/transfers', [TransferController::class, 'index'])->name('transfers.index');
-        Route::get('/transfers/export', [TransferController::class, 'export'])->name('transfers.export');
-    });
+// ==========================================
+// TRANSFERTS
+// ==========================================
+Route::middleware(['auth', 'verified', 'force_password_change'])->group(function () {
 
-    // Création / Modification / Enregistrement : Réservé uniquement au Super Admin et aux OPS
+    // Création / Modification
     Route::middleware(['role:Super Admin|OPS'])->group(function () {
-        Route::get('/transfers/create', [TransferController::class, 'create'])->name('transfers.create');
-        Route::post('/transfers', [TransferController::class, 'store'])->name('transfers.store');
-        
-        // Routes ajoutées pour le bouton Modifier
-        Route::get('/transfers/{transfer}/edit', [TransferController::class, 'edit'])->name('transfers.edit');
-        Route::put('/transfers/{transfer}', [TransferController::class, 'update'])->name('transfers.update');
+
+        Route::get('/transfers/create', [TransferController::class, 'create'])
+            ->name('transfers.create');
+
+        Route::post('/transfers', [TransferController::class, 'store'])
+            ->name('transfers.store');
+
+        Route::get('/transfers/{transfer}/edit', [TransferController::class, 'edit'])
+            ->name('transfers.edit');
+
+        Route::put('/transfers/{transfer}', [TransferController::class, 'update'])
+            ->name('transfers.update');
     });
 
-    // Route dynamique : Placée en dernier pour ne pas intercepter /create ou /export
+    // Consultation
     Route::middleware(['role:Super Admin|Controle Interne|OPS|CCB'])->group(function () {
-        Route::get('/transfers/{transfer}', [TransferController::class, 'show'])->name('transfers.show');
+
+        Route::get('/transfers', [TransferController::class, 'index'])
+            ->name('transfers.index');
+
+        Route::get('/transfers/export', [TransferController::class, 'export'])
+            ->name('transfers.export');
+
+        Route::get('/transfers/{transfer}', [TransferController::class, 'show'])
+            ->name('transfers.show');
     });
 
 });
 
-// Auth routes
+// ==========================================
+// EXPORTATIONS
+// ==========================================
+Route::middleware(['auth', 'verified', 'force_password_change'])->group(function () {
+
+    // Création / Modification
+    Route::middleware(['role:Super Admin|OPS'])->group(function () {
+
+        Route::get('/exports/create', [ExportController::class, 'create'])
+            ->name('exports.create');
+
+        Route::post('/exports', [ExportController::class, 'store'])
+            ->name('exports.store');
+
+        Route::get('/exports/{export}/edit', [ExportController::class, 'edit'])
+            ->name('exports.edit');
+
+        Route::put('/exports/{export}', [ExportController::class, 'update'])
+            ->name('exports.update');
+
+        Route::delete('/exports/{export}', [ExportController::class, 'destroy'])
+            ->name('exports.destroy');
+
+        Route::get('/imports/create', [ImportController::class, 'create'])
+            ->name('imports.create');
+
+        Route::post('/imports', [ImportController::class, 'store'])
+            ->name('imports.store');
+
+        Route::get('/imports/{import}/edit', [ImportController::class, 'edit'])
+            ->name('imports.edit');
+
+        Route::put('/imports/{import}', [ImportController::class, 'update'])
+            ->name('imports.update');
+
+        Route::delete('/imports/{import}', [ImportController::class, 'destroy'])
+            ->name('imports.destroy');
+    });
+
+    // Consultation
+    Route::middleware(['role:Super Admin|Controle Interne|OPS|CCB'])->group(function () {
+
+        Route::get('/exports', [ExportController::class, 'index'])
+            ->name('exports.index');
+
+        Route::get('/exports/export', [ExportController::class, 'export'])
+            ->name('exports.export');
+
+        Route::get('/exports/{export}', [ExportController::class, 'show'])
+            ->name('exports.show');
+
+        Route::get('/imports', [ImportController::class, 'index'])
+            ->name('imports.index');
+
+        Route::get('/imports/export', [ImportController::class, 'export'])
+            ->name('imports.export');
+
+        Route::get('/imports/{import}', [ImportController::class, 'show'])
+            ->name('imports.show');
+    });
+
+});
+
+// ==========================================
+// AUTHENTIFICATION
+// ==========================================
 require __DIR__.'/auth.php';

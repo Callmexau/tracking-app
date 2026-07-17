@@ -10,7 +10,7 @@
             <p class="text-muted small mb-0">Enregistrez une nouvelle importation importante.</p>
         </div>
         <a href="{{ route('imports.index') }}" class="btn btn-outline-secondary">
-            <i class="bi bi-arrow-left"></i> Retour à la liste
+            <i class="bi bi-arrow-left"></i> Retour
         </a>
     </div>
 

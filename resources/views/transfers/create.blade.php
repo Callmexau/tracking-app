@@ -8,8 +8,8 @@
         <h1 class="h3 fw-bold text-dark mb-1">Enregistrer un nouveau transfert</h1>
         <p class="text-muted small mb-0">Remplissez les informations du transfert pour alimenter la plateforme.</p>
     </div>
-    <a href="{{ route('dashboard') }}" class="btn btn-outline-secondary">
-        <i class="bi bi-arrow-left me-1"></i> Retour au tableau de bord
+    <a href="{{ route('transfers.index') }}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left me-1"></i> Retour
     </a>
 </div>
 

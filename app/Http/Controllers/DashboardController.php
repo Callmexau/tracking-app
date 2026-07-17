@@ -7,6 +7,7 @@ use App\Models\Import;
 use App\Models\Transfer;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Spatie\Permission\Models\Role;
 
 class DashboardController extends Controller
 {
@@ -53,14 +54,18 @@ class DashboardController extends Controller
     }
 
     private function getCommonDashboardData(bool $includeChart = true, string $period = '7d'): array
-{
-    $chartData = [
-        'labels' => [],
-        'data' => [],
-        'exportData' => [],
-    ];
+    {
+        $chartData = [
+            'labels' => [],
+            'data' => [],
+            'exportData' => [],
+        ];
 
-    if ($includeChart && class_exists(Transfer::class)) {
+        $roleDistribution = Role::withCount('users')->get();
+        $roleLabels = $roleDistribution->pluck('name')->toArray();
+        $roleCounts = $roleDistribution->pluck('users_count')->toArray();
+
+        if ($includeChart && class_exists(Transfer::class)) {
         $days = match ($period) {
             '30d' => 29,
             'year' => now()->dayOfYear - 1,
@@ -129,6 +134,8 @@ class DashboardController extends Controller
         'rejectedTransfers'  => class_exists(Transfer::class) ? Transfer::where('statut', 'Rejet')->count() : 0,
 
         'chartData' => $chartData,
+        'roleLabels' => $roleLabels,
+        'roleCounts' => $roleCounts,
     ];
 }
 }

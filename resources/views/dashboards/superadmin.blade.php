@@ -195,55 +195,17 @@
         </div>
     </div>
 
-    {{-- Audit / Activité Corrigé --}}
+    {{-- Répartition des rôles --}}
     <div class="col-lg-5">
         <div class="card h-100 shadow-sm border-0">
             <div class="card-header bg-transparent border-bottom py-3">
                 <h5 class="mb-0 fw-bold text-dark fs-6">
-                    Journal d'Activité Récent
+                    Répartition des Rôles
                 </h5>
             </div>
             <div class="card-body">
-                <div class="timeline">
-                    <div class="timeline-item">
-                        <div class="timeline-icon bg-soft-success">
-                            <i class="bi bi-plus-circle text-success"></i>
-                        </div>
-                        <div class="timeline-content">
-                            <p class="mb-0 fw-semibold text-dark small">Création d'utilisateurs</p>
-                            <span class="text-muted fs-7">Système mis à jour</span>
-                        </div>
-                    </div>
-
-                    <div class="timeline-item">
-                        <div class="timeline-icon bg-soft-primary">
-                            <i class="bi bi-shield-lock text-primary"></i>
-                        </div>
-                        <div class="timeline-content">
-                            <p class="mb-0 fw-semibold text-dark small">Gestion des rôles et accès</p>
-                            <span class="text-muted fs-7">Sécurité configurée</span>
-                        </div>
-                    </div>
-
-                    <div class="timeline-item">
-                        <div class="timeline-icon bg-soft-info">
-                            <i class="bi bi-send text-info"></i>
-                        </div>
-                        <div class="timeline-content">
-                            <p class="mb-0 fw-semibold text-dark small">Création des transferts internationaux</p>
-                            <span class="text-muted fs-7">En attente de traitement</span>
-                        </div>
-                    </div>
-
-                    <div class="timeline-item">
-                        <div class="timeline-icon bg-soft-warning">
-                            <i class="bi bi-pencil-square text-warning"></i>
-                        </div>
-                        <div class="timeline-content">
-                            <p class="mb-0 fw-semibold text-dark small">Modifications des dossiers</p>
-                            <span class="text-muted fs-7">Vérifications d'audit</span>
-                        </div>
-                    </div>
+                <div style="position: relative; height: 300px; width: 100%;">
+                    <canvas id="rolesDonutChart"></canvas>
                 </div>
             </div>
         </div>
@@ -254,7 +216,7 @@
 <div class="card shadow-sm border-0 mb-4">
     <div class="card-header bg-transparent border-bottom py-3 d-flex align-items-center justify-content-between">
         <h5 class="mb-0 fw-bold text-dark fs-6">
-            Évolution Temporelle des Transferts et Exportations
+            Évolution Temporelle des Activités
         </h5>
         <form method="GET" class="m-0">
             <select name="period" class="form-select form-select-sm border-0 bg-light w-auto" onchange="this.form.submit()">
@@ -406,6 +368,47 @@
                 }
             }
         });
+
+        const donutCtx = document.getElementById('rolesDonutChart')?.getContext('2d');
+        if (donutCtx) {
+            const roleLabels = @json($roleLabels ?? []);
+            const roleCounts = @json($roleCounts ?? []);
+            const roleColors = ['#0d6efd', '#198754', '#6610f2', '#fd7e14', '#dc3545', '#20c997', '#6f42c1'];
+
+            new Chart(donutCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: roleLabels,
+                    datasets: [{
+                        data: roleCounts,
+                        backgroundColor: roleColors.slice(0, roleLabels.length),
+                        borderColor: '#ffffff',
+                        borderWidth: 2,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                boxWidth: 12,
+                                padding: 16,
+                                usePointStyle: true,
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return ` ${context.label} : ${context.raw}`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
     });
 </script>
 @endpush

@@ -9,9 +9,39 @@ use Maatwebsite\Excel\Concerns\WithMapping;
 
 class ImportsExport implements FromCollection, WithHeadings, WithMapping
 {
+    protected ?string $search;
+    protected ?string $startDate;
+    protected ?string $endDate;
+
+    public function __construct(?string $search = null, ?string $startDate = null, ?string $endDate = null)
+    {
+        $this->search = $search;
+        $this->startDate = $startDate;
+        $this->endDate = $endDate;
+    }
+
     public function collection()
     {
-        return Import::orderBy('date_domiciliation', 'desc')->get();
+        $query = Import::query();
+
+        if ($this->search) {
+            $query->where(function ($q) {
+                $q->where('nom_client_importateur', 'like', "%{$this->search}%")
+                    ->orWhere('nom_client_exportateur', 'like', "%{$this->search}%")
+                    ->orWhere('reference_facture', 'like', "%{$this->search}%")
+                    ->orWhere('ref_transaction', 'like', "%{$this->search}%");
+            });
+        }
+
+        if ($this->startDate) {
+            $query->whereRaw('DATE(date_domiciliation) >= ?', [$this->startDate]);
+        }
+
+        if ($this->endDate) {
+            $query->whereRaw('DATE(date_domiciliation) <= ?', [$this->endDate]);
+        }
+
+        return $query->orderBy('date_domiciliation', 'desc')->get();
     }
 
     public function headings(): array

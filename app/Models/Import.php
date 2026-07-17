@@ -39,8 +39,8 @@ class Import extends Model
 
     protected $casts = [
         'date_domiciliation' => 'date',
-        'date_apurement' => 'date',
-        'date_reglement' => 'date',
+        'date_apurement' => 'string',
+        'date_reglement' => 'string',
         'montant_facture_contrat_commercial' => 'decimal:2',
     ];
 

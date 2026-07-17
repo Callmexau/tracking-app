@@ -31,11 +31,11 @@
             {{-- Barre de recherche --}}
             <div class="col-md-5 col-lg-6">
                 <form action="{{ route('transfers.index') }}" method="GET" class="input-group">
-                    <input 
-                        type="text" 
-                        class="form-control" 
-                        name="search" 
-                        placeholder="Rechercher par donneur d'ordre, bénéficiaire, réf. N98..." 
+                    <input
+                        type="text"
+                        class="form-control"
+                        name="search"
+                        placeholder="Rechercher par donneur d'ordre, bénéficiaire, réf. N98..."
                         value="{{ request('search') }}">
                     <button class="btn btn-outline-primary" type="submit">
                         <i class="bi bi-search"></i>
@@ -51,6 +51,7 @@
             {{-- Formulaire d'exportation Excel --}}
             <div class="col-md-7 col-lg-6">
                 <form action="{{ route('transfers.export') }}" method="GET" class="row g-2 justify-content-md-end align-items-center">
+                    <input type="hidden" name="search" value="{{ request('search') }}">
                     <div class="col-auto">
                         <label class="col-form-label small text-muted">Période (Optionnel) :</label>
                     </div>
@@ -127,7 +128,7 @@
                                     <a href="{{ route('transfers.show', $transfer->id) }}" class="btn btn-sm btn-outline-secondary" title="Détails">
                                         <i class="bi bi-eye"></i>
                                     </a>
-                                    
+
                                     {{-- Bouton Modifier visible uniquement par Super Admin et OPS --}}
                                     @role(['Super Admin', 'OPS'])
                                         <a href="{{ route('transfers.edit', $transfer->id) }}" class="btn btn-sm btn-outline-primary" title="Modifier">

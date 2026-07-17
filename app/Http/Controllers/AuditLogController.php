@@ -6,6 +6,7 @@ use App\Models\AuditLog;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
+use Illuminate\Support\Facades\Auth;
 
 class AuditLogController extends Controller implements HasMiddleware
 {
@@ -19,7 +20,8 @@ class AuditLogController extends Controller implements HasMiddleware
 
     public function index()
     {
-        $currentUser = auth()->user();
+        /** @var \App\Models\User $currentUser */
+        $currentUser = Auth::user();
 
         // Sécurité : Seul le Super Admin ou le Contrôle Interne peuvent auditer les logs
         if (!$currentUser->hasRole('Super Admin') && !$currentUser->hasRole('Controle Interne')) {

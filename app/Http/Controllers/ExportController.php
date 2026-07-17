@@ -28,11 +28,11 @@ class ExportController extends Controller
         }
 
         if ($start = $request->input('start_date')) {
-            $query->whereDate('date_domiciliation', '>=', $start);
+            $query->whereRaw('DATE(date_domiciliation) >= ?', [$start]);
         }
 
         if ($end = $request->input('end_date')) {
-            $query->whereDate('date_domiciliation', '<=', $end);
+            $query->whereRaw('DATE(date_domiciliation) <= ?', [$end]);
         }
 
         $exports = $query->orderBy('numero', 'asc')->paginate(20)->withQueryString();
@@ -119,7 +119,14 @@ class ExportController extends Controller
             'description' => 'Exportation des données des exportations au format Excel.',
         ]);
 
-        return Excel::download(new ExportsExport(), $fileName);
+        return Excel::download(
+            new ExportsExport(
+                $request->input('search'),
+                $request->input('start_date'),
+                $request->input('end_date')
+            ),
+            $fileName
+        );
     }
 
     /**

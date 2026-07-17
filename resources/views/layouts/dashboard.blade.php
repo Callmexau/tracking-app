@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'Dashboard') | Tracking App</title>
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -407,8 +408,128 @@
         toggleBtn.addEventListener('click', function () {
             sidebar.classList.toggle('collapsed');
         });
+
+        const sessionTimeoutMs = {{ config('session.lifetime') * 60 * 1000 }};
+        const warningDurationMs = 2 * 60 * 1000; // warning 2 minutes before expiration
+        const warningDelayMs = Math.max(sessionTimeoutMs - warningDurationMs, 0);
+        const logoutRedirect = '{{ route('login') }}';
+        const modalElement = document.getElementById('sessionTimeoutModal');
+        const countdownElement = document.getElementById('sessionTimeoutCountdown');
+        const stayButton = document.getElementById('stayLoggedInButton');
+        const sessionModal = modalElement ? new bootstrap.Modal(modalElement) : null;
+
+        let warningTimer;
+        let logoutTimer;
+        let countdownTimer;
+
+        function clearSessionTimers() {
+            clearTimeout(warningTimer);
+            clearTimeout(logoutTimer);
+            clearInterval(countdownTimer);
+        }
+
+        function startSessionTimers() {
+            clearSessionTimers();
+
+            warningTimer = setTimeout(showSessionWarning, warningDelayMs);
+            logoutTimer = setTimeout(expireSession, sessionTimeoutMs);
+        }
+
+        function expireSession() {
+            if (sessionModal) {
+                sessionModal.hide();
+            }
+
+            const logoutForm = document.getElementById('sessionLogoutForm');
+
+            if (logoutForm) {
+                logoutForm.submit();
+                return;
+            }
+
+            const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+            fetch('{{ route('logout') }}', {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': csrfToken,
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+                body: JSON.stringify({ auto_logout: true }),
+            })
+            .then((response) => {
+                if (!response.ok) {
+                    window.location.href = logoutRedirect;
+                }
+            })
+            .catch(() => {
+                window.location.href = logoutRedirect;
+            });
+        }
+
+        function showSessionWarning() {
+            if (!sessionModal) {
+                return;
+            }
+
+            let remainingSeconds = Math.ceil(warningDurationMs / 1000);
+            countdownElement.textContent = remainingSeconds;
+            sessionModal.show();
+
+            countdownTimer = setInterval(() => {
+                remainingSeconds -= 1;
+                countdownElement.textContent = remainingSeconds;
+            }, 1000);
+        }
+
+        function resetSessionTimers() {
+            startSessionTimers();
+            if (sessionModal) {
+                sessionModal.hide();
+            }
+        }
+
+        ['click', 'keypress', 'scroll', 'mousemove', 'touchstart'].forEach((event) => {
+            document.addEventListener(event, resetSessionTimers, { passive: true });
+        });
+
+        if (stayButton) {
+            stayButton.addEventListener('click', resetSessionTimers);
+        }
+
+        if (modalElement) {
+            modalElement.addEventListener('hidden.bs.modal', resetSessionTimers);
+        }
+
+        startSessionTimers();
     });
 </script>
+
+<div class="modal fade" id="sessionTimeoutModal" tabindex="-1" aria-labelledby="sessionTimeoutModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="sessionTimeoutModalLabel">Session inactive</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+            </div>
+            <div class="modal-body">
+                Votre session expirera dans <strong><span id="sessionTimeoutCountdown">120</span></strong> secondes.
+                Cliquez sur <strong>Rester connecté</strong> pour continuer.
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="stayLoggedInButton" data-bs-dismiss="modal">Rester connecté</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+    <form id="sessionLogoutForm" method="POST" action="{{ route('logout') }}" class="d-none">
+        @csrf
+        <input type="hidden" name="auto_logout" value="1">
+    </form>
+
 @stack('scripts')
 </body>
 </html>

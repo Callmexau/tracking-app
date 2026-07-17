@@ -13,7 +13,7 @@
 
         @hasanyrole(['Super Admin','OPS'])
             <a href="{{ route('exports.create') }}" class="btn btn-primary px-4">
-                <i class="bi bi-plus-lg me-1"></i> Nouveau dossier
+                <i class="bi bi-plus-lg me-1"></i> Nouvelle exportation
             </a>
         @endhasanyrole
     </div>

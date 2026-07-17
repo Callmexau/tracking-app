@@ -229,6 +229,16 @@
     <form method="POST" action="{{ route('login') }}">
         @csrf
 
+        @if ($errors->any())
+            <div class="alert alert-danger">
+                <ul class="mb-0">
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+
         <div class="mb-4">
             <label class="field-label">Adresse Email</label>
             <div class="input-group">
@@ -238,6 +248,7 @@
                     name="email"
                     class="form-control"
                     placeholder="exemple@ecobank.com"
+                    value="{{ old('email') }}"
                     required
                     autofocus>
             </div>
@@ -258,10 +269,6 @@
                     <i class="bi bi-eye" id="toggleIcon"></i>
                 </button>
             </div>
-        </div>
-
-        <div class="text-end mb-4 pb-2">
-            <a href="#" class="forgot-link">Mot de passe oublié ?</a>
         </div>
 
         <button type="submit" class="btn btn-login w-100">

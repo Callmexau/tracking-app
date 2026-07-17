@@ -38,7 +38,7 @@
                     'Montant quittance' => $import->montant_quittance,
                     'N° DI' => $import->numero_di,
                     'Pays' => $import->pays,
-                    'Date apurement' => optional($import->date_apurement)->format('d/m/Y'),
+                    'Date apurement' => is_string($import->date_apurement) ? $import->date_apurement : optional($import->date_apurement)->format('d/m/Y'),
                     'Mise en demeure' => $import->mise_en_demeure,
                     'Code ID importateur' => $import->code_identification_unique_importateur,
                     'Type importation' => $import->type_importation,
@@ -47,7 +47,7 @@
                     'Statut apurement' => $import->statut_apurement,
                     'VLC/AD/AH' => $import->vlc_ad_ah,
                     'Références MT298' => $import->references_mt298,
-                    'Date règlement' => optional($import->date_reglement)->format('d/m/Y'),
+                    'Date règlement' => is_string($import->date_reglement) ? $import->date_reglement : optional($import->date_reglement)->format('d/m/Y'),
                     'Réf transaction' => $import->ref_transaction,
                 ] as $label => $value)
                     <div class="col-md-6">

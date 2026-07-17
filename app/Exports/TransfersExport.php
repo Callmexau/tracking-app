@@ -7,20 +7,22 @@ use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Concerns\WithStyles;
-use Maatwebsite\Excel\Concerns\WithColumnFormatting; 
+use Maatwebsite\Excel\Concerns\WithColumnFormatting;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
-use PhpOffice\PhpSpreadsheet\Style\NumberFormat; 
+use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
 
 class TransfersExport implements FromCollection, WithHeadings, WithMapping, WithStyles, WithColumnFormatting
 {
+    protected ?string $search;
     protected $startDate;
     protected $endDate;
 
-    public function __construct($startDate = null, $endDate = null)
+    public function __construct(?string $search = null, $startDate = null, $endDate = null)
     {
+        $this->search = $search;
         $this->startDate = $startDate;
         $this->endDate = $endDate;
     }
@@ -32,12 +34,21 @@ class TransfersExport implements FromCollection, WithHeadings, WithMapping, With
     {
         $query = Transfer::query();
 
+        if ($this->search) {
+            $query->where(function ($q) {
+                $q->where('donneur_ordre', 'like', "%{$this->search}%")
+                    ->orWhere('beneficiaire', 'like', "%{$this->search}%")
+                    ->orWhere('ref_n98', 'like', "%{$this->search}%")
+                    ->orWhere('reference_transaction', 'like', "%{$this->search}%");
+            });
+        }
+
         if ($this->startDate) {
-            $query->whereDate('date_depot', '>=', $this->startDate);
+            $query->whereRaw('DATE(date_depot) >= ?', [$this->startDate]);
         }
 
         if ($this->endDate) {
-            $query->whereDate('date_depot', '<=', $this->endDate);
+            $query->whereRaw('DATE(date_depot) <= ?', [$this->endDate]);
         }
 
         return $query->get();
@@ -47,12 +58,12 @@ class TransfersExport implements FromCollection, WithHeadings, WithMapping, With
     public function headings(): array
     {
         return [
-            'Date de dépôt', 'Segment Clientèle', 'Réf N98', 
-            'Donneur d\'ordre', 'Bénéficiaire', 'Réf Transaction', 'Devise', 
-            'Montant Ordre', 'Montant Devise Préf.', 'Situation Dossier', 
-            'Envoi BEAC', 'Date Décision', 'Décision BEAC', 
-            'Réception MT999', 'Envoi Couverture', 'Réception Devise', 
-            'Conditions Réunies', 'Date Traitement', 'Statut', 'Commentaire', 
+            'Date de dépôt', 'Segment Clientèle', 'Réf N98',
+            'Donneur d\'ordre', 'Bénéficiaire', 'Réf Transaction', 'Devise',
+            'Montant Ordre', 'Montant Devise Préf.', 'Situation Dossier',
+            'Envoi BEAC', 'Date Décision', 'Décision BEAC',
+            'Réception MT999', 'Envoi Couverture', 'Réception Devise',
+            'Conditions Réunies', 'Date Traitement', 'Statut', 'Commentaire',
             'Délai Traitement'
         ];
     }
@@ -65,7 +76,7 @@ class TransfersExport implements FromCollection, WithHeadings, WithMapping, With
     public function map($transfer): array
     {
         $situation = $transfer->situation_dossier;
-        
+
         if ($situation === 'Allocation' && !empty($transfer->numero_allocation)) {
             $situation .= ' - ' . $transfer->numero_allocation;
         }
@@ -159,7 +170,7 @@ class TransfersExport implements FromCollection, WithHeadings, WithMapping, With
             'G' => 12, // Devise
             'H' => 18, // Montant Ordre
             'I' => 18, // Montant Devise Préf.
-            'J' => 25, // Situation Dossier 
+            'J' => 25, // Situation Dossier
             'K' => 15, // Envoi BEAC
             'L' => 15, // Date Décision
             'M' => 18, // Décision BEAC

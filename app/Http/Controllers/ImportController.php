@@ -25,11 +25,11 @@ class ImportController extends Controller
         }
 
         if ($start = $request->input('start_date')) {
-            $query->whereDate('date_domiciliation', '>=', $start);
+            $query->whereRaw('DATE(date_domiciliation) >= ?', [$start]);
         }
 
         if ($end = $request->input('end_date')) {
-            $query->whereDate('date_domiciliation', '<=', $end);
+            $query->whereRaw('DATE(date_domiciliation) <= ?', [$end]);
         }
 
         $imports = $query->orderBy('date_domiciliation', 'desc')->paginate(20)->withQueryString();
@@ -104,13 +104,20 @@ class ImportController extends Controller
             'description' => 'Exportation des données des importations au format Excel.',
         ]);
 
-        return Excel::download(new ImportsExport(), $fileName);
+        return Excel::download(
+            new ImportsExport(
+                $request->input('search'),
+                $request->input('start_date'),
+                $request->input('end_date')
+            ),
+            $fileName
+        );
     }
 
     private function validateImport(Request $request, $importId = null)
     {
         return $request->validate([
-            'date_domiciliation' => 'required|date',
+            'date_domiciliation' => 'nullable|date',
             'segment_commercial' => 'nullable|string|max:255',
             'nom_client_importateur' => 'nullable|string|max:255',
             'nom_client_exportateur' => 'nullable|string|max:255',
@@ -125,7 +132,7 @@ class ImportController extends Controller
             'montant_quittance' => 'nullable|string|max:255',
             'numero_di' => 'nullable|string|max:255',
             'pays' => 'nullable|string|max:255',
-            'date_apurement' => 'nullable|date',
+            'date_apurement' => 'nullable|string|max:255',
             'mise_en_demeure' => 'nullable|string|max:255',
             'code_identification_unique_importateur' => 'nullable|string|max:255',
             'type_importation' => 'nullable|string|max:50',
@@ -134,7 +141,7 @@ class ImportController extends Controller
             'statut_apurement' => 'nullable|string|max:255',
             'vlc_ad_ah' => 'nullable|string|max:50',
             'references_mt298' => 'nullable|string|max:255',
-            'date_reglement' => 'nullable|date',
+            'date_reglement' => 'nullable|string|max:255',
             'ref_transaction' => 'nullable|string|max:255',
         ]);
     }

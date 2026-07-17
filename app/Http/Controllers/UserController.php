@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Spatie\Permission\Models\Role;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
@@ -23,6 +24,8 @@ class UserController extends Controller implements HasMiddleware
     // Affichage de la liste des utilisateurs
     public function index()
     {
+        /** @var \App\Models\User $currentUser */
+        /** @var \App\Models\User $currentUser */
         $currentUser = auth()->user();
 
         $query = User::with('roles')->latest();
@@ -44,6 +47,8 @@ class UserController extends Controller implements HasMiddleware
     // Formulaire de création d'un nouvel utilisateur
     public function create()
     {
+        /** @var \App\Models\User $currentUser */
+        /** @var \App\Models\User $currentUser */
         $currentUser = auth()->user();
 
         // 1. Le Super Admin peut attribuer TOUS les rôles
@@ -64,6 +69,8 @@ class UserController extends Controller implements HasMiddleware
     // Méthode de stockage du nouvel utilisateur
     public function store(Request $request)
     {
+        /** @var \App\Models\User $currentUser */
+        /** @var \App\Models\User $currentUser */
         $currentUser = auth()->user();
 
         if ($currentUser->hasRole('Super Admin')) {
@@ -106,6 +113,7 @@ class UserController extends Controller implements HasMiddleware
     // Formulaire d'édition d'un utilisateur existant
     public function edit(User $user)
     {
+        /** @var \App\Models\User $currentUser */
         $currentUser = auth()->user();
 
         if ($currentUser->hasRole('Controle Interne') && !$user->hasAnyRole(['OPS', 'CCB'])) {
@@ -127,6 +135,7 @@ class UserController extends Controller implements HasMiddleware
     // Méthode de mise à jour de l'utilisateur
     public function update(Request $request, User $user)
     {
+        /** @var \App\Models\User $currentUser */
         $currentUser = auth()->user();
 
         // 1. Contrôle strict de l'utilisateur cible (Empêche CI de modifier un Super Admin ou un autre CI)
@@ -183,14 +192,18 @@ class UserController extends Controller implements HasMiddleware
     // Méthode de suppression d'un utilisateur
     public function destroy(User $user)
     {
+        /** @var \App\Models\User $currentUser */
         $currentUser = auth()->user();
+
+        if ($currentUser->id === $user->id) {
+            abort(403, 'Vous ne pouvez pas supprimer votre propre compte.');
+        }
 
         // Le Contrôle Interne ne peut en aucun cas supprimer un Super Admin ou un autre Contrôle Interne
         if ($currentUser->hasRole('Controle Interne') && $user->hasAnyRole(['Super Admin', 'Controle Interne'])) {
             abort(403, 'Suppression non autorisée pour ce type de profil.');
         }
 
-        // Le Super Admin peut tout supprimer (ouvert), mais on peut aussi restreindre s'il s'auto-supprime par ex.
         $user->delete();
 
         AuditLog::log(

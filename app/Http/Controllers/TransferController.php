@@ -28,8 +28,16 @@ class TransferController extends Controller
             });
         }
 
-        // Tri par ordre décroissant et pagination de 10 éléments par page
-        $transfers = $query->latest()->paginate(20);
+        if ($start = $request->input('start_date')) {
+            $query->whereRaw('DATE(date_depot) >= ?', [$start]);
+        }
+
+        if ($end = $request->input('end_date')) {
+            $query->whereRaw('DATE(date_depot) <= ?', [$end]);
+        }
+
+        // Tri par ordre décroissant et pagination de 20 éléments par page
+        $transfers = $query->latest()->paginate(20)->withQueryString();
 
         return view('transfers.index', compact('transfers'));
     }
@@ -144,6 +152,7 @@ class TransferController extends Controller
 
     public function export(Request $request)
     {
+        $search = $request->input('search');
         $start = $request->input('start_date');
         $end = $request->input('end_date');
 
@@ -158,7 +167,7 @@ class TransferController extends Controller
         ]);
 
         // Utilisation de la classe de la façade Excel pointant vers la classe d'export dédiée
-        return Excel::download(new TransfersExport($start, $end), $fileName);
+        return Excel::download(new TransfersExport($search, $start, $end), $fileName);
     }
 
     // Validation des données du transfert avec règles spécifiques

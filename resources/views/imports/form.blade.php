@@ -73,7 +73,7 @@
     </div>
     <div class="col-md-4 mb-3">
         <label class="form-label">Date d'apurement</label>
-        <input type="date" name="date_apurement" class="form-control" value="{{ old('date_apurement', isset($import) ? optional($import->date_apurement)->format('Y-m-d') : '') }}">
+        <input type="text" name="date_apurement" class="form-control" value="{{ old('date_apurement', isset($import) ? (is_string($import->date_apurement) ? $import->date_apurement : optional($import->date_apurement)->format('Y-m-d')) : '') }}" placeholder="JJ/MM/AAAA ou texte libre">
     </div>
     <div class="col-md-4 mb-3">
         <label class="form-label">Mise en demeure</label>
@@ -101,7 +101,12 @@
     </div>
     <div class="col-md-4 mb-3">
         <label class="form-label">VLC/AD/AH</label>
-        <input type="text" name="vlc_ad_ah" class="form-control" value="{{ old('vlc_ad_ah', $import->vlc_ad_ah ?? '') }}">
+        <select name="vlc_ad_ah" class="form-select">
+            <option value="">Sélectionner</option>
+            <option value="VLC" {{ old('vlc_ad_ah', $import->vlc_ad_ah ?? '') == 'VLC' ? 'selected' : '' }}>VLC</option>
+            <option value="AD" {{ old('vlc_ad_ah', $import->vlc_ad_ah ?? '') == 'AD' ? 'selected' : '' }}>AD</option>
+            <option value="AH" {{ old('vlc_ad_ah', $import->vlc_ad_ah ?? '') == 'AH' ? 'selected' : '' }}>AH</option>
+        </select>
     </div>
     <div class="col-md-4 mb-3">
         <label class="form-label">Références MT298</label>
@@ -109,7 +114,7 @@
     </div>
     <div class="col-md-4 mb-3">
         <label class="form-label">Date de règlement</label>
-        <input type="date" name="date_reglement" class="form-control" value="{{ old('date_reglement', isset($import) ? optional($import->date_reglement)->format('Y-m-d') : '') }}">
+        <input type="text" name="date_reglement" class="form-control" value="{{ old('date_reglement', isset($import) ? (is_string($import->date_reglement) ? $import->date_reglement : optional($import->date_reglement)->format('Y-m-d')) : '') }}" placeholder="JJ/MM/AAAA ou texte libre">
     </div>
     <div class="col-md-4 mb-3">
         <label class="form-label">Réf transaction</label>

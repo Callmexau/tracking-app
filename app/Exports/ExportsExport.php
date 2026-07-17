@@ -31,7 +31,7 @@ class ExportsExport implements FromCollection, WithHeadings, WithMapping
             'Référence Bon à Embarquer',
             'Montant Bon à Embarquer',
             'Référence Quittance de Paiement des Droits et Taxes de Douane Dus Liés à l\'Exportation',
-            'Montant de la Quittance de Paiement des Droits et Taxes de Douane Dus Liés à l\'Exportation',
+            'Montant de la Quittance de Paiement des Droits et Taxes de Douane Dus Liés à',
             'Nature de l\'Exportation (Bien ou Service)',
             'Date d\'Ouverture du Dossier',
             'Date d\'Échéance du Contrat d\'Exportation',

@@ -53,7 +53,7 @@ class ExportController extends Controller
      */
     public function store(Request $request)
     {
-        $validated = $request->validate([
+        $rules = [
             'numero' => 'required|string|max:255|unique:exports,numero',
             'nom_exportateur' => 'required|string|max:255',
             'date_domiciliation' => 'required|date',
@@ -84,7 +84,32 @@ class ExportController extends Controller
             'statut_dossier' => 'required|in:Non apuré,En cours,Apuré',
 
             'commentaire' => 'nullable|string',
-        ]);
+        ];
+
+        $messages = [
+            'required' => 'Le champ :attribute est requis.',
+            'date' => "Le champ :attribute doit être une date valide.",
+            'numeric' => "Le champ :attribute doit être un nombre.",
+            'string' => "Le champ :attribute doit être une chaîne de caractères.",
+            'max' => "Le champ :attribute ne doit pas dépasser :max caractères.",
+            'in' => "Le champ :attribute contient une valeur invalide.",
+            'unique' => "Le champ :attribute a déjà été pris.",
+        ];
+
+        $attributes = [
+            'numero' => 'Numéro',
+            'nom_exportateur' => 'Nom Exportateur',
+            'date_domiciliation' => 'Date de domiciliation',
+            'reference_domiciliation' => 'Référence de domiciliation',
+            'reference_facture_contrat' => 'Référence de la facture définitive ou contrat',
+            'devise' => 'Devise',
+            'montant_facture' => 'Montant facture / contrat',
+            'nature_exportation' => "Nature de l'exportation",
+            'date_ouverture_dossier' => 'Date ouverture dossier',
+            'statut_dossier' => 'Statut dossier',
+        ];
+
+        $validated = $request->validate($rules, $messages, $attributes);
 
         $validated['created_by'] = Auth::id();
 
@@ -142,7 +167,7 @@ class ExportController extends Controller
      */
     public function update(Request $request, Export $export)
     {
-        $validated = $request->validate([
+        $rules = [
             'numero' => 'required|string|max:255|unique:exports,numero,' . $export->id,
             'nom_exportateur' => 'required|string|max:255',
             'date_domiciliation' => 'required|date',
@@ -173,7 +198,32 @@ class ExportController extends Controller
             'statut_dossier' => 'required|in:Non apuré,En cours,Apuré',
 
             'commentaire' => 'nullable|string',
-        ]);
+        ];
+
+        $messages = [
+            'required' => 'Le champ :attribute est requis.',
+            'date' => "Le champ :attribute doit être une date valide.",
+            'numeric' => "Le champ :attribute doit être un nombre.",
+            'string' => "Le champ :attribute doit être une chaîne de caractères.",
+            'max' => "Le champ :attribute ne doit pas dépasser :max caractères.",
+            'in' => "Le champ :attribute contient une valeur invalide.",
+            'unique' => "Le champ :attribute a déjà été pris.",
+        ];
+
+        $attributes = [
+            'numero' => 'Numéro',
+            'nom_exportateur' => 'Nom Exportateur',
+            'date_domiciliation' => 'Date de domiciliation',
+            'reference_domiciliation' => 'Référence de domiciliation',
+            'reference_facture_contrat' => 'Référence de la facture définitive ou contrat',
+            'devise' => 'Devise',
+            'montant_facture' => 'Montant facture / contrat',
+            'nature_exportation' => "Nature de l'exportation",
+            'date_ouverture_dossier' => 'Date ouverture dossier',
+            'statut_dossier' => 'Statut dossier',
+        ];
+
+        $validated = $request->validate($rules, $messages, $attributes);
 
         $export->update($validated);
 

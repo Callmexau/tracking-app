@@ -116,7 +116,7 @@ class ImportController extends Controller
 
     private function validateImport(Request $request, $importId = null)
     {
-        return $request->validate([
+        $rules = [
             'date_domiciliation' => 'nullable|date',
             'segment_commercial' => 'nullable|string|max:255',
             'nom_client_importateur' => 'nullable|string|max:255',
@@ -143,6 +143,45 @@ class ImportController extends Controller
             'references_mt298' => 'nullable|string|max:255',
             'date_reglement' => 'nullable|string|max:255',
             'ref_transaction' => 'nullable|string|max:255',
-        ]);
+        ];
+
+        $messages = [
+            'required' => 'Le champ :attribute est requis.',
+            'date' => "Le champ :attribute doit être une date valide.",
+            'numeric' => "Le champ :attribute doit être un nombre.",
+            'string' => "Le champ :attribute doit être une chaîne de caractères.",
+            'max' => "Le champ :attribute ne doit pas dépasser :max caractères.",
+        ];
+
+        $attributes = [
+            'date_domiciliation' => 'Date domiciliation',
+            'segment_commercial' => 'Segment commercial',
+            'nom_client_importateur' => 'Nom du client importateur',
+            'nom_client_exportateur' => 'Nom du client exportateur',
+            'devise' => 'Devise',
+            'reference_facture' => 'Référence de la facture',
+            'montant_facture_contrat_commercial' => 'Montant facture/contrat commercial',
+            'montant_reglement' => 'Montant de règlement',
+            'montant_di' => 'Montant de la DI',
+            'ref_declaration_detail' => 'Réf de la déclaration en détail',
+            'montant_declaration_detail' => 'Montant de la déclaration en détail',
+            'ref_quittance_paiement_droits_et_taxes_douane' => 'Réf de la quittance de paiement',
+            'montant_quittance' => 'Montant de la quittance',
+            'numero_di' => 'N° de la DI',
+            'pays' => 'Pays',
+            'date_apurement' => "Date d'apurement",
+            'mise_en_demeure' => 'Mise en demeure',
+            'code_identification_unique_importateur' => "Code identification importateur",
+            'type_importation' => "Type d'importation",
+            'nature_importation' => 'Nature importation',
+            'ref_domiciliation' => 'Réf domiciliation',
+            'statut_apurement' => 'Statut apurement',
+            'vlc_ad_ah' => 'VLC/AD/AH',
+            'references_mt298' => 'Références MT298',
+            'date_reglement' => "Date de règlement",
+            'ref_transaction' => 'Réf transaction',
+        ];
+
+        return $request->validate($rules, $messages, $attributes);
     }
 }

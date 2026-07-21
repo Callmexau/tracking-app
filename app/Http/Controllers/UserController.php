@@ -55,7 +55,7 @@ class UserController extends Controller implements HasMiddleware
         if ($currentUser->hasRole('Super Admin')) {
             $roles = Role::all();
         }
-        // 2. Le Contrôle Interne ne voit et ne crée QUE des Ops et des CCB
+        // 2. Le Contrôle Interne ne voit et ne crée que des Ops et des CCB
         elseif ($currentUser->hasRole('Controle Interne')) {
             $roles = Role::whereIn('name', ['OPS', 'CCB'])->get();
         }
